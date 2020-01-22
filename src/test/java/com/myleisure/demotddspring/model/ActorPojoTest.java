@@ -1,20 +1,24 @@
 package com.myleisure.demotddspring.model;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+@DataMongoTest
 public class ActorPojoTest {
 
-    @Test public void getActorPojo() {
-        Actor actor = Actor.builder()
-                .id("0")
-                .firstName("Jack")
-                .lastName("Reacher")
-                .build();
+    @Autowired
+    private ReactiveMongoTemplate template;
 
-        assertThat(actor.getFirstName()).isEqualTo("Jack");
-        assertThat(actor.getLastName()).isEqualToIgnoringCase("reacher");
-        assertThat(actor.getId()).isEqualTo("0");
+    @Test
+    public void save() {
+        Actor a = new Actor("James", "Cameron");
+        Mono<Actor> save = template.save(Mono.just(a));
+        StepVerifier.create(save)
+                .expectNextMatches(actor -> actor.getId() != null)
+                .verifyComplete();
     }
 }
